@@ -93,6 +93,7 @@ int8_t shiftval[] = {
     12, 8, 4, 0,
     12, 8, 4, 0,
     12, 8, 4, 0,
+    12, 8, 4, 0,
     12, 8, 4, 0 };
 
 
@@ -107,7 +108,7 @@ int16_t read_map(int x, int y, int level)
     index += col/4;         // 4 words oer row
     data = lil_map[index];
     //  one word has 4 nibbles of data col0col1col2ol3
-    data = data >> ((3-(col &3)) * 4);
+    data = data >> shiftval[col];
     return (data & 0x0f);
 }
 ////////////////////////////////////////////////////////////////////
@@ -163,59 +164,45 @@ int xfirst;
 //// draw_map - draw the world using solid colors
 ////
 //////////////////////////////////////////////////////
-
-
-
 void draw_map(int xstart, int ystart, int step, int index){
 int i,x,y,j;
-uint16_t temp,temp2;
-int color;
-    for( j= 0 ; j < 18; j++)
+uint16_t temp;
+int color_index;
+int rowstart;
+int xfirst;
+
+    xfirst = xstart;
+    rowstart = 0;
+    while( xfirst < (1 - step))
     {
-        y = ystart + (j * step);
-        x = xstart;
-	for (i = 0; i < 4 ; i++)
+        xfirst += step;
+        rowstart++;
+    }
+
+    y= ystart;
+    j = 0;
+    while ( y < (1-step))
     {
-		temp = lil_map[index];
-		temp2 = temp & 0x0f;
-		color = tile_table[temp2];
-		if (color > 0)
-		{
-		    game.display.color = color;
-    		game.display.fillRectangle(x + (3 * step),y,step,step);
-		}
-
-		temp = temp / 16;
-		temp2 = temp & 0x0f;
-		color = tile_table[temp2];
-		if (color > 0)
-		{
-		    game.display.color = color;
-    		game.display.fillRectangle(x + (2 * step),y,step,step);
-		}
-
-		temp = temp / 16;
-		temp2 = temp & 0x0f;
-		color = tile_table[temp2];
-		if (color > 0)
-		{
-		    game.display.color = color;
-    		game.display.fillRectangle(x + (step),y,step,step);
-		}
-
-	temp = temp / 16;
-		temp2 = temp & 0x0f;
-		color = tile_table[temp2];
-		if (color > 0)
-		{
-		    game.display.color = color;
-    		game.display.fillRectangle(x,y,step,step);
-		}
-
-	index = index + 1;
-	x = x + (4 * step);
+        y = y + step;
+        j++;
     }
+    index += j << 2;
+    for (; (y < height) && (j < 18); y+= step, j++, index += 4)
+    {
+        x = xfirst;
+        for (i = rowstart; (i < 16) && (x < width) ; i++, x += step)
+        {
+            temp = lil_map[index + (i >> 2)];
+            color_index = (temp >> shiftval[i]) & 0x0f;
+            if (color_index > 0)
+            {
+                game.display.color = tile_table[color_index];
+                game.display.fillRectangle(x,y,step,step);
+
+            }
+        }
     }
+
 }
 
 ////////////////////////////////////////////////////////////////////////////
