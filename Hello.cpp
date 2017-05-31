@@ -89,6 +89,11 @@ static ldata leveldata[NUM_LEVELS] = {
 //
 //////////////////////////////////////////////////////////////////////////////
 
+int8_t shiftval[] = {
+    12, 8, 4, 0,
+    12, 8, 4, 0,
+    12, 8, 4, 0,
+    12, 8, 4, 0 };
 
 
 int16_t read_map(int x, int y, int level)
@@ -96,6 +101,7 @@ int16_t read_map(int x, int y, int level)
     int index;
     int col;
     uint16_t data;
+    if ((x < 0) || (y < 0)) return (0);
     index = ((level -1) * WORDSPERLEVEL) + ((y/TILESIZE) * 4);
     col = x/TILESIZE;
     index += col/4;         // 4 words oer row
@@ -112,70 +118,44 @@ int16_t read_map(int x, int y, int level)
 
 void draw_world(int xstart, int ystart, int step, int index,int aframe){
 int i,x,y,j;
-uint16_t temp,temp2;
+uint16_t temp;
 int color;
-    for( j= 0 ; j < 18; j++)
+int rowstart;
+int xfirst;
+
+    xfirst = xstart;
+    rowstart = 0;
+    while( xfirst < (1 - step))
     {
-        y = ystart + (j * step);
-        x = xstart;
-	for (i = 0; i < 4 ; i++)
+        xfirst += step;
+        rowstart++;
+    }
+
+    y= ystart;
+    j = 0;
+    while ( y < (1-step))
     {
-		temp = lil_map[index];
-		temp2 = temp & 0x0f;
-		color = tile_table[temp2];
-		if (color > 0)
-		{
-		    //game.display.color = color;
-    		//game.display.fillRectangle(x + (3 * step),y,step,step);
-    		if (temp2 > 3)
-                game.display.drawBitmap(x + (step * 3),y,bitmap_table[temp2] + aframe);
-            else
-                game.display.drawBitmap(x + (step * 3),y,bitmap_table[temp2]);
-		}
-
-		temp = temp / 16;
-		temp2 = temp & 0x0f;
-		color = tile_table[temp2];
-		if (color > 0)
-		{
-		    //game.display.color = color;
-    		//game.display.fillRectangle(x + (2 * step),y,step,step);
-    		if (temp2 > 3)
-                game.display.drawBitmap(x + (step * 2),y,bitmap_table[temp2] + aframe);
-            else
-                game.display.drawBitmap(x + (step * 2),y,bitmap_table[temp2]);
-		}
-
-		temp = temp / 16;
-		temp2 = temp & 0x0f;
-		color = tile_table[temp2];
-		if (color > 0)
-		{
-		    //game.display.color = color;
-    		//game.display.fillRectangle(x + (step),y,step,step);
-    	if (temp2 > 3)
-                game.display.drawBitmap(x + step,y,bitmap_table[temp2] + aframe);
-            else
-                game.display.drawBitmap(x + (step),y,bitmap_table[temp2]);
-		}
-
-	temp = temp / 16;
-		temp2 = temp & 0x0f;
-		color = tile_table[temp2];
-		if (color > 0)
-		{
-		    //game.display.color = color;
-    		//game.display.fillRectangle(x,y,step,step);
-    		if (temp2 > 3)
-                game.display.drawBitmap(x,y,bitmap_table[temp2] + aframe);
-            else
-                game.display.drawBitmap(x,y,bitmap_table[temp2]);
-		}
-
-	index = index + 1;
-	x = x + (4 * step);
+        y = y + step;
+        j++;
     }
+    index += j << 2;
+    for (; (y < height) && (j < 18); y+= step, j++, index += 4)
+    {
+        x = xfirst;
+        for (i = rowstart; (i < 16) && (x < width) ; i++, x += step)
+        {
+            temp = lil_map[index + (i >> 2)];
+            color = (temp >> shiftval[i]) & 0x0f;
+            if (color > 0)
+            {
+                if (color > 3)
+                    game.display.drawBitmap(x,y,bitmap_table[color] + aframe);
+                else
+                    game.display.drawBitmap(x,y,bitmap_table[color]);
+            }
+        }
     }
+
 }
 
 //////////////////////////////////////////////////////////////////
@@ -401,6 +381,7 @@ while (game.isRunning()) {
                 {
                     if (game.buttons.repeat(BTN_A,0))
                     {
+                        if (level > 30) level = 1;
                         lptr = &leveldata[level];
                        //  squidwx =  (lptr->startx * TILESIZE);
                        //  squidwy =  (lptr->starty * TILESIZE) + (3 * TILESIZE);
