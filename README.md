@@ -4,7 +4,10 @@ This game is based on The Pico-8 game created by Aphrodite.
 
 ## Squiddy Licence
 
-Squiddy is under the [CC BY-NC-SA 4.0 Licence](https://creativecommons.org/licenses/by-nc-sa/4.0/).
+The original Squiddy and this port are both under the [CC BY-NC-SA 4.0 Licence](https://creativecommons.org/licenses/by-nc-sa/4.0/).
+
+The author of the original Squiddy is [Aphrodite](https://www.lexaloffle.com/bbs/?uid=22907).
+The original squiddy game can be found [here](https://www.lexaloffle.com/bbs/?tid=28824).
 
 ```
 Attribution-NonCommercial-ShareAlike 4.0 International
